@@ -109,6 +109,8 @@ class Membership
     private $firstShiftDate;
 
     /**
+     * @ORM\OneToMany(targetEntity="TimeLog", mappedBy="membership", cascade={"persist", "remove"})
+     * @OrderBy({"createdAt" = "DESC", "type" = "DESC"})
      */
     private $timeLogs;
 
