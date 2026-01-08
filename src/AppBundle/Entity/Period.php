@@ -4,12 +4,15 @@ namespace AppBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\OrderBy;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * Period
  *
  * @ORM\Table(name="period")
  * @ORM\Entity(repositoryClass="AppBundle\Repository\PeriodRepository")
+ * @Assert\Callback({"validate"})
  */
 class Period
 {
@@ -389,5 +392,42 @@ class Period
 
         ksort($aggregatePerWeekCycle);
         return $aggregatePerWeekCycle;
+    }
+
+    /**
+     * Custom validation to prevent creating periods on closed days
+     * 
+     * @Assert\Callback
+     */
+    public function validate(ExecutionContextInterface $context, $payload)
+    {
+        // Sunday = 6 (store is closed)
+        // This can be made configurable via parameters.yml in the future
+        $closedDays = [6];
+        
+        if (in_array($this->dayOfWeek, $closedDays)) {
+            $daysMap = [
+                0 => 'lundi',
+                1 => 'mardi', 
+                2 => 'mercredi',
+                3 => 'jeudi',
+                4 => 'vendredi',
+                5 => 'samedi',
+                6 => 'dimanche'
+            ];
+            
+            $dayName = isset($daysMap[$this->dayOfWeek]) ? $daysMap[$this->dayOfWeek] : 'inconnu';
+            
+            $context->buildViolation("Le magasin est fermé le $dayName. Impossible de créer une période pour ce jour.")
+                ->atPath('dayOfWeek')
+                ->addViolation();
+        }
+        
+        // Additional validation: end time must be after start time
+        if ($this->start && $this->end && $this->end <= $this->start) {
+            $context->buildViolation("L'heure de fin doit être après l'heure de début.")
+                ->atPath('end')
+                ->addViolation();
+        }
     }
 }

@@ -25,7 +25,9 @@ class PeriodFixtures extends Fixture implements OrderedFixtureInterface, Fixture
         $enabled_jobs_count = FixturesConstants::ENABLED_JOBS_COUNT;
         $adminsCount = FixturesConstants::ADMINS_COUNT;
 
-        for ($i = 0; $i < 7; $i++) {
+        // Only generate periods for Monday to Saturday (0-5)
+        // Sunday (6) is excluded - store is closed (SCRUM-16)
+        for ($i = 0; $i < 6; $i++) {
 
             $period = new Period();
 
@@ -37,7 +39,7 @@ class PeriodFixtures extends Fixture implements OrderedFixtureInterface, Fixture
             $period->setStart($startDate);
             $period->setEnd($endDate);
 
-            $period->setDayOfWeek($i % 7);
+            $period->setDayOfWeek($i); // 0=Monday through 5=Saturday
 
             $randJobId = rand(1, $enabled_jobs_count);
             $job = $this->getReference('job_' . $randJobId);
@@ -67,7 +69,7 @@ class PeriodFixtures extends Fixture implements OrderedFixtureInterface, Fixture
 
         $manager->flush();
 
-        echo "7 periods per week with random number of positions created\n";
+        echo "6 periods per week (Monday-Saturday) with random number of positions created\n";
     }
 
     public static function getGroups(): array

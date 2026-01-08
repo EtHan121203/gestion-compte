@@ -27,7 +27,7 @@ class PeriodType extends AbstractType
                 "Jeudi" => 3,
                 "Vendredi" => 4,
                 "Samedi" => 5,
-                "Dimanche" => 6,
+                // "Dimanche" => 6, // Removed - Store closed on Sundays (SCRUM-16)
             )))
             ->add('start', TextType::class, array('label' => 'Heure de début', 'attr' => array('class' => 'timepicker')))
             ->add('end', TextType::class, array('label' => 'Heure de fin', 'attr' => array('class' => 'timepicker')))
