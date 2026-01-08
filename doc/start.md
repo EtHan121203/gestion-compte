@@ -20,7 +20,7 @@ Documentation Symfony pour manipuler les utilisateurs : http://symfony.com/doc/2
 
 Dans l'admin panel :
 
-- Créer les *formations* (qualifications) que les bénévoles peuvent avoir (ressource, ambassadeur, fermeture, ...)
+- Créer les *formations* (qualifications) que les bénévoles peuvent avoir (ressource, ambassadeur, fermeture, etc)
 - Créer les *postes de bénévolat* à assurer lors d'un créneau (épicerie, bureau des membres) et choisir la couleur principale d'affichage dans l'emploi du temps
 - Aller dans la *semaine type* pour définir les horaires et types de créneaux
 - **Créer** un créneau-type en renseignant le jour de la semaine, les heures de début et de fin et le *poste* associé au créneau
