@@ -80,7 +80,7 @@
     </div>
 </div>
 
-{% include "admin/booking/_partial/bucket_calendar.html.twig" with { bucketsByDay: bucketsByDay } %}
+    {% include "admin/booking/_partial/bucket_calendar.html.twig" with { bucketsByDay: bucketsByDay, dayDeleteForms: dayDeleteForms } %}
 
 <div id="modal-bucket" class="modal">
     <div id="modal-bucket-content" class="modal-content">
@@ -141,6 +141,38 @@
                         $('#modal-bucket-content .collapsible').collapsible();
                         $('#modal-bucket-content select').formSelect({ dropdownOptions: { container: document.body } });
                     }).fail(ajaxError);
+                }
+            });
+            // for the day delete buttons ------------------
+            $('.day-delete-btn').on('click', function(e) {
+                e.preventDefault();
+                var day = $(this).data('day');
+                var dayFormatted = $(this).data('day-formatted');
+                var formId = '#day_delete_form_' + day.replace(/ /g, '_');
+                var $form = $(formId);
+
+                if (confirm('Êtes-vous sûr de vouloir supprimer TOUS les créneaux du ' + dayFormatted + ' ?\n\nCette action est irréversible !')) {
+                    console.log('[DayDelete] User confirmed deletion for day: ' + day);
+                    console.log('[DayDelete] Form ID: ' + formId);
+                    console.log('[DayDelete] Form action: ' + $form.attr('action'));
+                    console.log('[DayDelete] Form data: ' + $form.serialize());
+                    $.ajax({
+                        url: $form.attr('action'),
+                        type: 'POST',
+                        data: $form.serialize(),
+                        success: function(data) {
+                            console.log('[DayDelete] Success: ' + data.message);
+                            M.toast({ text: data.message, displayLength: 5000, classes: 'green' });
+                            location.reload();
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.log('[DayDelete] Error: ' + textStatus);
+                            console.log('[DayDelete] Response: ' + jqXHR.responseText);
+                            ajaxError(jqXHR, errorThrown);
+                        }
+                    });
+                } else {
+                    console.log('[DayDelete] User cancelled deletion for day: ' + day);
                 }
             });
         });

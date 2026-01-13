@@ -16,19 +16,34 @@
             {% set previousWeekIndex = weekIndex %}
         {% endif %}
 
-        {# New day --------- #}
-        {% if not date %}
-            {% set date = true %}
-            <div class="row center show-on-small hide-on-med-and-up">
-                {{ (buckets|first).start | date_fr_long }}
-            </div>
-
-            <div class="col m2 hide-on-small-only valign-wrapper">
-                <div>
-                    <b>{{ (buckets|first).start | date_fr_long }}</b><br>
+            {# New day --------- #}
+            {% if not date %}
+                {% set date = true %}
+                {% set currentDay = (buckets|first).start | date("d m Y") %}
+                <div class="row center show-on-small hide-on-med-and-up">
+                    {{ (buckets|first).start | date_fr_long }}
                 </div>
-            </div>
-        {% endif %}
+
+                <div class="col m2 hide-on-small-only valign-wrapper">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                        <div>
+                            <b>{{ (buckets|first).start | date_fr_long }}</b><br>
+                        </div>
+                        {% if dayDeleteForms is defined and dayDeleteForms[currentDay] is defined %}
+                            <form id="day_delete_form_{{ currentDay | replace({' ': '_'}) }}" action="{{ path('day_delete', {'day': currentDay}) }}" method="post" style="display: inline;">
+                                <input type="hidden" name="_method" value="DELETE">
+                                {{ form_widget(dayDeleteForms[currentDay]) }}
+                                <button type="button" class="btn-small red day-delete-btn"
+                                        data-day="{{ currentDay }}"
+                                        data-day-formatted="{{ (buckets|first).start | date_fr_long }}"
+                                        title="Supprimer tous les créneaux de ce jour">
+                                    <i class="material-icons">delete_sweep</i>
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
 
         <div class="row" style="display: flex;min-height: 70px;">
             <div class="col m10 s12">

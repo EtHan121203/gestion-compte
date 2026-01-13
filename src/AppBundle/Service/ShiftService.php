@@ -563,4 +563,54 @@ class ShiftService
                 $start_before,
                 $end_after)->isEmpty();
     }
+
+    /**
+     * Get all shifts for a specific day
+     * @param string $day format "d m Y"
+     * @return array
+     */
+    public function getShiftsForDay(string $day): array
+    {
+        $date = \DateTime::createFromFormat("d m Y", $day);
+        $date->setTime(0, 0, 0);
+        $endDate = clone $date;
+        $endDate->setTime(23, 59, 59);
+
+        error_log("[ShiftService] Getting shifts for day: " . $date->format("Y-m-d"));
+
+        $shifts = $this->em->getRepository('AppBundle:Shift')->createQueryBuilder('s')
+            ->where('s.start >= :start')
+            ->andWhere('s.start <= :end')
+            ->setParameter('start', $date)
+            ->setParameter('end', $endDate)
+            ->getQuery()
+            ->getResult();
+
+        error_log("[ShiftService] Found " . count($shifts) . " shifts for day: " . $date->format("Y-m-d"));
+
+        return $shifts;
+    }
+
+    /**
+     * Delete all shifts for a specific day
+     * @param string $day format "d m Y"
+     * @return int number of deleted shifts
+     */
+    public function deleteShiftsForDay(string $day): int
+    {
+        $shifts = $this->getShiftsForDay($day);
+        $count = count($shifts);
+
+        error_log("[ShiftService] Starting deletion of " . $count . " shifts for day: " . $day);
+
+        foreach ($shifts as $shift) {
+            error_log("[ShiftService] Deleting shift ID: " . $shift->getId() . " - Job: " . $shift->getJob()->getName() . " - Start: " . $shift->getStart()->format("Y-m-d H:i"));
+            $this->em->remove($shift);
+        }
+
+        $this->em->flush();
+        error_log("[ShiftService] Successfully deleted " . $count . " shifts for day: " . $day);
+
+        return $count;
+    }
 }
