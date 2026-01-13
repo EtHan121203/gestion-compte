@@ -245,6 +245,9 @@
                         {% if not member.mainBeneficiary.user.isEnabled %}
                             <i class="material-icons" title="Compte pas encore activé">{{ user_account_not_enabled_material_icon }}</i>
                         {% endif %}
+                        {% if member.notes is not empty %}
+                            <i class="material-icons" title="A des notes ({{ member.notes|length }})">note</i>
+                        {% endif %}
                     </td>
                     <td>
                         <a href="{{ path('member_show', { 'member_number': member.memberNumber }) }}">{{ member.memberNumber }}</a>
