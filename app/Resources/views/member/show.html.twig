@@ -386,6 +386,12 @@
                     <i class="material-icons">build</i>Actions super admin
                 </div>
                 <div class="collapsible-body white">
+                    <p>
+                        <a href="{{ path('member_admin_change_password', {'member_number': member.memberNumber}) }}" class="btn orange">
+                            <i class="material-icons left">lock</i>Modifier le mot de passe
+                        </a>
+                    </p>
+
                     {{ form_start(delete_form) }}
                     {{ form_widget(delete_form) }}
                     <button type="submit" class="btn red"><i class="material-icons left">delete</i>Supprimer ce membre</button>

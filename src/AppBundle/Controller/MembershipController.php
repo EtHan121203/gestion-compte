@@ -36,6 +36,7 @@ use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -1178,6 +1179,53 @@ class MembershipController extends Controller
             return $this->redirectToRoute('member_show', array('member_number' => $member->getMemberNumber()));
         else
             return $this->redirectToRoute('member_show', array('member_number' => $member->getMemberNumber(), 'token' => $member->getTmpToken($session->get('token_key') . $this->getCurrentAppUser()->getUsername())));
+    }
+
+    /**
+     * Admin change password for a member.
+     *
+     * @Route("/{member_number}/admin_change_password", name="member_admin_change_password", methods={"GET","POST"})
+     * @Security("has_role('ROLE_SUPER_ADMIN')")
+     * @param Request $request
+     * @param Membership $member
+     * @return Response
+     */
+    public function adminChangePasswordAction(Request $request, Membership $member)
+    {
+        $user = $member->getMainBeneficiary()->getUser();
+
+        $formBuilder = $this->createFormBuilder();
+        $formBuilder->add('password', PasswordType::class, array('label' => 'Nouveau mot de passe', 'trim' => true));
+        $formBuilder->add('password_repeat', PasswordType::class, array('label' => 'Confirmer le mot de passe', 'trim' => true));
+        $form = $formBuilder->getForm();
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $session = new Session();
+
+            if ($form->getData()['password'] === $form->getData()['password_repeat']) {
+                $user->setPlainPassword($form->getData()['password']);
+
+                // Utiliser le UserManager de FOSUserBundle pour encoder le mot de passe
+                $userManager = $this->get('fos_user.user_manager');
+                $userManager->updateUser($user);
+
+                $dispatcher = $this->get('event_dispatcher');
+                $event = new UserEvent($user, $request);
+                $dispatcher->dispatch(FOSUserEvents::USER_PASSWORD_CHANGED, $event);
+
+                $session->getFlashBag()->add('success', 'Mot de passe modifié avec succès pour le membre #' . $member->getMemberNumber());
+
+                return $this->redirectToRoute('member_show', array('member_number' => $member->getMemberNumber()));
+            } else {
+                $session->getFlashBag()->add('error', 'Attention : les deux mots de passe ne sont pas identiques !');
+            }
+        }
+
+        return $this->render('member/admin_change_password.html.twig', array(
+            'form' => $form->createView(),
+            'member' => $member
+        ));
     }
 
     /**
