@@ -13,6 +13,7 @@ use AppBundle\Event\MemberCycleHalfEvent;
 use AppBundle\Event\MemberCycleStartEvent;
 use AppBundle\Event\ShiftBookedEvent;
 use AppBundle\Event\ShiftDeletedEvent;
+use AppBundle\Event\ShiftFreedEvent;
 use Monolog\Logger;
 use Swift_Mailer;
 use Symfony\Component\DependencyInjection\Container;
@@ -261,6 +262,36 @@ class EmailingEventListener
                 );
             $this->mailer->send($warn);
         }
+    }
+
+    /**
+     * @param ShiftFreedEvent $event
+     * @throws \Exception
+     */
+    public function onShiftFreed(ShiftFreedEvent $event)
+    {
+        $this->logger->info("Emailing Listener: onShiftFreed");
+
+        $shift = $event->getShift();
+        $beneficiary = $event->getBeneficiary();
+        $reason = $event->getReason();
+
+        $archive = (new \Swift_Message('[ESPACE MEMBRES] ANNULATION'))
+            ->setFrom($this->shiftEmail['address'], $this->shiftEmail['from_name'])
+            ->setTo($this->shiftEmail['address'])
+            ->setReplyTo($beneficiary->getEmail())
+            ->setBody(
+                $this->renderView(
+                    'emails/freed_shift.html.twig',
+                    array(
+                        'shift' => $shift,
+                        'beneficiary' => $beneficiary,
+                        'reason' => $reason
+                    )
+                ),
+                'text/html'
+            );
+        $this->mailer->send($archive);
     }
 
     /**
