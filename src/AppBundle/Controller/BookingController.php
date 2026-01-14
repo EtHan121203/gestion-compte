@@ -316,11 +316,18 @@ class BookingController extends Controller
         $bucketsByDay = $this->get('shift_service')->generateShiftBucketsByDayAndJob($shifts);
         $bucketsByDay = $this->get('shift_service')->filterBucketsByDayAndJobByFilling($bucketsByDay, $filter["filling"]);
 
+        // Generate delete forms for each day
+        $dayDeleteForms = [];
+        foreach ($bucketsByDay as $day => $bucketsByJob) {
+            $dayDeleteForms[$day] = $this->createDayDeleteForm($day)->createView();
+        }
+
         return $this->render('admin/booking/index.html.twig', [
             'filterForm' => $filter["form"]->createView(),
             'bucketsByDay' => $bucketsByDay,
             'jobs' => $jobs,
             'beneficiaries' => $beneficiaries,
+            'dayDeleteForms' => $dayDeleteForms,
         ]);
     }
 
@@ -498,6 +505,51 @@ class BookingController extends Controller
             $session->getFlashBag()->add($success ? 'success' : 'error', $message);
             return $this->redirectToRoute('booking_admin');
         }
+    }
+    /**
+     * delete all shifts in a day
+     *
+     * @Route("/day/{day}/delete", name="day_delete", methods={"DELETE"})
+     * @Security("has_role('ROLE_ADMIN')")
+     */
+    public function deleteDayAction(Request $request, string $day)
+    {
+        $session = new Session();
+        $form = $this->createDayDeleteForm($day);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $count = $this->get('shift_service')->deleteShiftsForDay($day);
+            $success = true;
+            $message = $count . (($count > 1) ? " créneaux ont été supprimés" : " créneau a été supprimé") . " pour ce jour !";
+            error_log("[BookingController] Day deletion successful: " . $message);
+        } else {
+            $success = false;
+            $message = "Une erreur s'est produite... Impossible de supprimer les créneaux du jour. " . (string) $form->getErrors(true, false);
+            error_log("[BookingController] Day deletion failed: " . $message);
+        }
+
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse(array('message'=>$message), $success ? 200 : 400);
+        } else {
+            $session->getFlashBag()->add($success ? 'success' : 'error', $message);
+            return $this->redirectToRoute('booking_admin');
+        }
+    }
+
+    /**
+     * Creates a form to delete all shifts in a day.
+     *
+     * @param string $day The day in format "d m Y"
+     *
+     * @return \Symfony\Component\Form\Form The form
+     */
+    private function createDayDeleteForm(string $day)
+    {
+        return $this->get('form.factory')->createNamedBuilder('day_delete_form_' . str_replace(' ', '_', $day))
+            ->setAction($this->generateUrl('day_delete', array('day' => $day)))
+            ->setMethod('DELETE')
+            ->getForm();
     }
 
     /**
