@@ -211,6 +211,10 @@ class ShiftService
         if ($shift->getIsPast() || $shift->isLocked() || $shift->getShifter()) {
             return false;
         }
+        // Do not book shift if it's less than 48 hours from now
+        if ($shift->isBefore('+48 hours')) {
+            return false;
+        }
         // Do not book pre-booked shift
         if ($shift->getLastShifter() && $beneficiary->getId() != $shift->getLastShifter()->getId()) {
             return false;
