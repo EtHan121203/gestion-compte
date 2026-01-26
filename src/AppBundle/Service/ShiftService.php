@@ -211,10 +211,6 @@ class ShiftService
         if ($shift->getIsPast() || $shift->isLocked() || $shift->getShifter()) {
             return false;
         }
-        // Do not book shift if it's less than 48 hours from now
-        if ($shift->isBefore('+48 hours')) {
-            return false;
-        }
         // Do not book pre-booked shift
         if ($shift->getLastShifter() && $beneficiary->getId() != $shift->getLastShifter()->getId()) {
             return false;
@@ -295,6 +291,12 @@ class ShiftService
             if ($shift->getIsPast() || $shift->getIsCurrent()) {
                 $result = false;
                 $message = "Impossible de libérer un créneau dans le passé.";
+            }
+
+            // Cannot free a shift less than 48 hours (2 days) in advance
+            if ($result && $shift->isBefore('2 days')) {
+                $result = false;
+                $message = "Impossible de libérer un créneau moins de 48 heures à l'avance.";
             }
 
             // Fly & fixed: check if there is a rule allowing to free fixed shifts
@@ -504,7 +506,7 @@ class ShiftService
     {
         $buckets = array();
         foreach ($shifts as $shift) {
-            $key = $shift->getIntervalCode().$shift->getJob()->getId();
+            $key = $shift->getIntervalCode() . $shift->getJob()->getId();
             if (!isset($buckets[$key])) {
                 $bucket = new ShiftBucket();
                 $buckets[$key] = $bucket;
