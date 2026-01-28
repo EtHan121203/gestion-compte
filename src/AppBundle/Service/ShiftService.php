@@ -611,6 +611,16 @@ class ShiftService
 
         foreach ($shifts as $shift) {
             error_log("[ShiftService] Deleting shift ID: " . $shift->getId() . " - Job: " . $shift->getJob()->getName() . " - Start: " . $shift->getStart()->format("Y-m-d H:i"));
+
+            // If the shift is booked, delete associated TimeLogs to avoid counter issues
+            if ($shift->getShifter()) {
+                $timeLogs = $shift->getTimeLogs();
+                foreach ($timeLogs as $timeLog) {
+                    error_log("[ShiftService] Deleting TimeLog ID: " . $timeLog->getId() . " - Type: " . $timeLog->getType() . " - Time: " . $timeLog->getTime() . " - Member: " . $timeLog->getMembership()->getMemberNumber());
+                    $this->em->remove($timeLog);
+                }
+            }
+
             $this->em->remove($shift);
         }
 
