@@ -117,7 +117,7 @@ class ShiftService
      * @return bool
      */
     public function canBookShift(Beneficiary $beneficiary, Shift $currentShift) {
-        if ($this->forbidShiftOverlapTime < 0) {
+        if ($this->forbidShiftOverlapTime <= 0) {
             return true;
         }
         $shifts = $beneficiary->getShifts()->filter(function ($shift) use ($currentShift) {
@@ -376,7 +376,7 @@ class ShiftService
                 return !$shift->getShifter();
             });
         } else {
-            if ($bucket->canBookInterval($beneficiary)) {
+            if ($this->forbidShiftOverlapTime <= 0 || $bucket->canBookInterval($beneficiary)) {
                 $bookableShifts = $bucket->getShifts()->filter(function (Shift $shift) use ($beneficiary) {
                     return $this->isShiftBookable($shift, $beneficiary);
                 });
