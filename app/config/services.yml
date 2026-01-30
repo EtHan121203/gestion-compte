@@ -187,6 +187,7 @@ services:
                 - "@doctrine.orm.entity_manager"
                 - '@beneficiary_service'
                 - '@membership_service'
+                - '@event_dispatcher'
                 - "%due_duration_by_cycle%"
                 - "%min_shift_duration%"
                 - "%new_users_start_as_beginner%"

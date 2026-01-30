@@ -7,18 +7,21 @@ use AppBundle\Entity\Membership;
 use AppBundle\Entity\Registration;
 use AppBundle\Entity\Shift;
 use AppBundle\Entity\ShiftBucket;
+use AppBundle\Event\ShiftDeletedEvent;
 use AppBundle\Service\MembershipService;
 use AppBundle\Service\BeneficiaryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use phpDocumentor\Reflection\Types\Array_;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class ShiftService
 {
     private $em;
     private $beneficiaryService;
     private $membershipService;
+    private $dispatcher;
     private $due_duration_by_cycle;
     private $min_shift_duration;
     private $newUserStartAsBeginner;
@@ -31,6 +34,7 @@ class ShiftService
     private $time_log_saving_shift_free_min_time_in_advance_days;
 
     public function __construct(EntityManagerInterface $em, BeneficiaryService $beneficiaryService, MembershipService $membershipService,
+        EventDispatcherInterface $dispatcher,
         $due_duration_by_cycle, $min_shift_duration, $newUserStartAsBeginner, $allowExtraShifts, $maxTimeInAdvanceToBookExtraShifts, $forbidShiftOverlapTime,
         $use_fly_and_fixed, $fly_and_fixed_allow_fixed_shift_free,
         $use_time_log_saving, $time_log_saving_shift_free_min_time_in_advance_days)
@@ -38,6 +42,7 @@ class ShiftService
         $this->em = $em;
         $this->beneficiaryService = $beneficiaryService;
         $this->membershipService = $membershipService;
+        $this->dispatcher = $dispatcher;
         $this->due_duration_by_cycle = $due_duration_by_cycle;
         $this->min_shift_duration = $min_shift_duration;
         $this->newUserStartAsBeginner = $newUserStartAsBeginner;
@@ -117,7 +122,7 @@ class ShiftService
      * @return bool
      */
     public function canBookShift(Beneficiary $beneficiary, Shift $currentShift) {
-        if ($this->forbidShiftOverlapTime < 0) {
+        if ($this->forbidShiftOverlapTime <= 0) {
             return true;
         }
         $shifts = $beneficiary->getShifts()->filter(function ($shift) use ($currentShift) {
@@ -376,7 +381,7 @@ class ShiftService
                 return !$shift->getShifter();
             });
         } else {
-            if ($bucket->canBookInterval($beneficiary)) {
+            if ($this->forbidShiftOverlapTime <= 0 || $bucket->canBookInterval($beneficiary)) {
                 $bookableShifts = $bucket->getShifts()->filter(function (Shift $shift) use ($beneficiary) {
                     return $this->isShiftBookable($shift, $beneficiary);
                 });
@@ -612,14 +617,9 @@ class ShiftService
         foreach ($shifts as $shift) {
             error_log("[ShiftService] Deleting shift ID: " . $shift->getId() . " - Job: " . $shift->getJob()->getName() . " - Start: " . $shift->getStart()->format("Y-m-d H:i"));
 
-            // If the shift is booked, delete associated TimeLogs to avoid counter issues
-            if ($shift->getShifter()) {
-                $timeLogs = $shift->getTimeLogs();
-                foreach ($timeLogs as $timeLog) {
-                    error_log("[ShiftService] Deleting TimeLog ID: " . $timeLog->getId() . " - Type: " . $timeLog->getType() . " - Time: " . $timeLog->getTime() . " - Member: " . $timeLog->getMembership()->getMemberNumber());
-                    $this->em->remove($timeLog);
-                }
-            }
+            // Dispatch ShiftDeletedEvent to trigger TimeLog deletion via TimeLogEventListener
+            $beneficiary = $shift->getShifter();
+            $this->dispatcher->dispatch(ShiftDeletedEvent::NAME, new ShiftDeletedEvent($shift, $beneficiary));
 
             $this->em->remove($shift);
         }
