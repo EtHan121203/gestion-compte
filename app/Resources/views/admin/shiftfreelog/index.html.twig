@@ -93,10 +93,14 @@
                     </a>
                 </td>
                 <td>
-                    {{ shiftFreeLog.shift.job }} - {{ shiftFreeLog.shift.start | date('d/m/Y') }} de {{ shiftFreeLog.shift.start | date('H:i') }} à {{ shiftFreeLog.shift.end | date('H:i') }}
+                    {% if shiftFreeLog.shift %}
+                        {{ shiftFreeLog.shift.job }} - {{ shiftFreeLog.shift.start | date('d/m/Y') }} de {{ shiftFreeLog.shift.start | date('H:i') }} à {{ shiftFreeLog.shift.end | date('H:i') }}
+                    {% else %}
+                        <em>Créneau supprimé</em>
+                    {% endif %}
                 </td>
                 {% if use_fly_and_fixed %}
-                    <td>{{ shiftFreeLog.fixe }}</td>
+                    <td>{{ shiftFreeLog.fixe ? 'Oui' : 'Non' }}</td>
                 {% endif %}
                 <td>
                     {% if shiftFreeLog.createdBy and shiftFreeLog.createdBy.beneficiary %}
