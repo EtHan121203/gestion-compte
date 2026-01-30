@@ -98,7 +98,7 @@ class RegistrationType extends AbstractType
                     'choice_label' => 'username',
                 ));
                 $form->add('mode', ChoiceType::class, array('choices'  => array(
-                    'CB' => Registration::TYPE_CREDIT_CARD,
+                    'Virement' => Registration::TYPE_CREDIT_CARD,
 //                    'Espèce' => Registration::TYPE_CASH,
                     'Chèque' => Registration::TYPE_CHECK,
                     $this->localCurrency => Registration::TYPE_LOCAL,
