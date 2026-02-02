@@ -58,7 +58,7 @@ class AnonymousBeneficiaryType extends AbstractType
                 'placeholder' => '',
                 'required' => false,
                 'choices' => array(
-                    'Espèce' => Registration::TYPE_CASH,
+                    'Virement' => Registration::TYPE_CASH,
                     'Chèque' => Registration::TYPE_CHECK,
                     $this->localCurrency => Registration::TYPE_LOCAL,
                     'Helloasso' => Registration::TYPE_HELLOASSO,

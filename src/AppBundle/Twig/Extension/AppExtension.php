@@ -217,7 +217,7 @@ class AppExtension extends AbstractExtension
                 $name = $this->container->getParameter('local_currency_name');
                 break;
             case Registration::TYPE_CASH :
-                $name .= 'espèce';
+                $name .= 'virement';
                 break;
             case Registration::TYPE_CHECK :
                 $name .= 'chèque';

@@ -71,7 +71,7 @@ class ImportUsersCommand extends CsvCommand
                 "required" => false,"default" =>date('d/m/Y')),
             'amount' => array('label' => 'Montant','index'=>11),
             'mode' => array('label' => 'Mode de paiement',
-                'tips'=>'int : 1 = espèce,2 = chèque, 3 = monnaie locale, 4 = cb, 6 = Helloasso, 5 = autre',
+                'tips'=>'int : 1 = virement,2 = chèque, 3 = monnaie locale, 4 = cb, 6 = Helloasso, 5 = autre',
                 "required" => false,"default" =>5),
             'registrar' => array('label' => 'Membre ayant réalisé l\'inscription',
                 'tips'=>'Id de l\'utilisateur. Ex: 45. Default is 1.',

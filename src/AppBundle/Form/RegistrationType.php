@@ -75,7 +75,7 @@ class RegistrationType extends AbstractType
                     ));
                     $form->add('mode', ChoiceType::class, array(
                         'choices' => array(
-                            'Espèce' => Registration::TYPE_CASH,
+                            'Virement' => Registration::TYPE_CASH,
                             'Chèque' => Registration::TYPE_CHECK,
                             $this->localCurrency => Registration::TYPE_LOCAL,
                             'HelloAsso' => Registration::TYPE_HELLOASSO,
@@ -98,8 +98,8 @@ class RegistrationType extends AbstractType
                     'choice_label' => 'username',
                 ));
                 $form->add('mode', ChoiceType::class, array('choices'  => array(
-                    'Virement' => Registration::TYPE_CREDIT_CARD,
-//                    'Espèce' => Registration::TYPE_CASH,
+                    'CB' => Registration::TYPE_CREDIT_CARD,
+                    'Virement' => Registration::TYPE_CASH,
                     'Chèque' => Registration::TYPE_CHECK,
                     $this->localCurrency => Registration::TYPE_LOCAL,
                 ),'label' => 'Mode de réglement')); //todo, make it dynamic
