@@ -1,8 +1,8 @@
 # Always up-to-date !
 
-## Etapes d'exécution d'une mise à jour
+## Etape 1 : Récupérer le code
 
-### vous avez installé avec git
+### Vous avez installé avec git
 
 1. Déplacement à la racine du projet
 
@@ -20,7 +20,7 @@ git pull
 
 ### vous n'avez pas installé avec git (ex via ftp)
 
-1. Téléchargez la dernière version de l'application via https://github.com/elefan-grenoble
+1. Téléchargez la dernière version de l'application via https://github.com/quot17/gestion-compte
 2. Déplacez l'intégralité du code téléchargé sur votre serveur afin d'écraser les anciens fichiers
 3. Connectez-vous en ligne de commande sur votre serveur et déplacez vous dans le dossier
 
@@ -28,27 +28,27 @@ git pull
 cd /var/www/html/gestion-compte
 ```
 
-### suite : les étapes communes
+## Etape 2 : Finaliser la mise à jour
 
-4. Exécution de l'installation des dépendances
+1. Exécution de l'installation des dépendances
 
 ```shell
 composer install
 ```
 
-5. Mise à jour de la base de données
+2. Mise à jour de la base de données
 
 ```shell
 php bin/console doctrine:migrations:migrate
 ```
 
-6. Installer les nouveaux media
+3. Installer les nouveaux media
 
 ```shell
 php bin/console assetic:dump
 ```
 
-7. Vider le cache de production
+4. Vider le cache de production
 
 ```shell
 php bin/console cache:clear --env=prod

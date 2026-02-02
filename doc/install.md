@@ -7,43 +7,69 @@
 * docker
 * docker-compose
 
-### Lancer l'instance
+#### Construire les conteneurs
+
+```shell
+docker compose build
+``` 
+
+#### Lancer l'instance
 
 Lancer le docker-compose pour deployer un conteneur de base de données (mariadb) et un conteneur symfony
 
 ```shell
-docker-compose up
+docker compose up
 ```
-
-Ajouter `127.0.0.1 membres.yourcoop.local` au fichier _/etc/hosts_.
 
 Note: le premier lancement du docker-compose peut être long (~30s) du fait de plusieurs étapes : initialisation de la db, creation du fichier parameters.yml, ... La ligne `PHP 7.4.27 Development Server (http://0.0.0.0:8000) started` indique que le deploiement de l'espace membre est fonctionnel. La base de données est montée dans docker avec un volume, elle est donc persistente. Le fichier _parameters.yml_ doit être modifié suivant la configuration voulue.
 
-### Charger la donnée
+N'oubliez pas de définir la variable d'environnement `DEV_MODE_ENABLED` dans le container qui exécute le code de l'application.
 
-#### Charger la base de données à partir d'un dump
+### Avec nix
 
-Supprimer une base de données existante (si elle existe)
+Vous pouvez obtenir toutes les dépendances du projet en utilisant [Nix](https://nixos.org/download.html). Une fois installé lancez `nix develop --impure` et tous les outils nécessaires sont dans votre `PATH` à la bonne version, comme déclaré dans [flake.nix](../flake.nix).
+Cela peut se faire automatiquement quand vous `cd` dans le répertoire si vous avez installé [direnv](https://direnv.net/).
+
+Pour lancer l'instance mariadb de test utilisez `devenv up`.
+Pour lancer l'application, utilisez `php bin/console server:run '*:8000'`
+
+## Accès à l'application
+
+Ajouter `127.0.0.1 membres.yourcoop.local` au fichier _/etc/hosts_.
+
+Le site est en ligne à l'adresse [http://membres.yourcoop.local:8000](http://membres.yourcoop.local:8000).
+
+Pour créer l'utilisateur super admin, visiter :
+[http://membres.yourcoop.local:8000/user/install_admin](http://membres.yourcoop.local:8000/user/install_admin).
+
+Vous pouvez vous connecter avec l'utilisateur super admin :
+**admin** / **password**.
+
+## Ajout de données
+
+### Remplir la base de donnée avec des données fictives
 
 ```shell
-docker exec -it database mysql -uroot -psecret -e 'DROP DATABASE IF EXISTS symfony;'
+docker compose exec php php bin/console doctrine:fixtures:load -n
 ```
 
-Recréer la base de données
+Le groupe de fixtures "period" omet les données de la table **shift**, utile pour tester la génération des shifts à partir des périodes.
 
 ```shell
-docker exec -it database mysql -uroot -psecret -e 'CREATE DATABASE IF NOT EXISTS symfony;'
+docker compose exec php php bin/console doctrine:fixtures:load -n --group=period
 ```
 
-Charger la base données depuis une sauvegarde
+### Importer un dump de la base de données
 
 ```shell
-docker exec -i database mysql -uroot -psecret symfony < espace_membres.sql
+# supprimer la base de données existante et la recréer
+docker compose exec database mariadb -uroot -psecret -e 'DROP DATABASE IF EXISTS symfony; CREATE DATABASE IF NOT EXISTS symfony;'
+
+# importer le dump
+docker compose exec database mariadb -uroot -psecret symfony < espace_membres.sql
 ```
 
-#### Créer la donnée en local
-
-Pour créer l'utilisateur super admin (valeurs par défaut : admin:password), visiter [http://membres.yourcoop.local:8000/user/install_admin](http://membres.yourcoop.local:8000/user/install_admin).
+Vous pouvez aussi le faire directement sur phpmyadmin : [http://localhost:8081](http://localhost:8081)
 
 ## Installation sur un serveur
 
@@ -61,7 +87,7 @@ Pour créer l'utilisateur super admin (valeurs par défaut : admin:password), vi
 Clone code
 
 ```shell
-git clone https://github.com/elefan-grenoble/gestion-compte.git
+git clone https://github.com/quot17/gestion-compte.git
 cd gestion-compte
 ```
 
@@ -142,6 +168,6 @@ location ~* ^/sw/(.*)/(qr|br)\.png$ {
 45 21 * * * php YOUR_INSTALL_DIR_ABSOLUT_PATH/bin/console app:code:verify_change --last_run 24
 ```
 
-### mise en route
+### Mise en route
 
 * Suivez le [guide de mise en route](start.md)
