@@ -79,7 +79,7 @@ class TimeLog
 
     /**
      * @ORM\ManyToOne(targetEntity="Shift", inversedBy="timeLogs")
-     * @ORM\JoinColumn(name="shift_id", referencedColumnName="id", onDelete="SET NULL")
+     * @ORM\JoinColumn(name="shift_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $shift;
 
@@ -293,9 +293,9 @@ class TimeLog
             case self::TYPE_CYCLE_END_EXPIRED_REGISTRATION:
                 return "Début de cycle (compte expiré)";
             case self::TYPE_CYCLE_END_EXEMPTED:
-                return "Début de cycle (compte exempté de créneau - exemption n°" . join(",", $this->membership->getMembershipShiftExemptions()->filter(function($membershipShiftExemption) {
+                return "Début de cycle (compte exempté de créneau - exemption n°" . join(",", $this->membership->getMembershipShiftExemptions()->filter(function ($membershipShiftExemption) {
                     return $membershipShiftExemption->isCurrent($this->createdAt);
-                })->map(function($element) {
+                })->map(function ($element) {
                     return $element->getId();
                 })->toArray()) . ")";
             case self::TYPE_REGULATE_OPTIONAL_SHIFTS:
