@@ -113,7 +113,8 @@ class DefaultController extends Controller
         }
 
         $eventsFuture = $em->getRepository('AppBundle:Event')->findFutures();
-        $dynamicContent = $em->getRepository('AppBundle:DynamicContent')->findOneByCode("HOME")->getContent();
+        $dynamicContentEntity = $em->getRepository('AppBundle:DynamicContent')->findOneByCode("HOME");
+        $dynamicContent = $dynamicContentEntity ? $dynamicContentEntity->getContent() : '';
 
         return $this->render('default/index.html.twig', [
             'events' => $eventsFuture,
