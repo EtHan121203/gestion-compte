@@ -52,19 +52,19 @@ class Shift
 
     /**
      * @ORM\ManyToOne(targetEntity="Beneficiary", inversedBy="shifts")
-     * @ORM\JoinColumn(name="shifter_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="shifter_id", referencedColumnName="id", onDelete="SET NULL")
      */
     private $shifter;
 
     /**
      * @ORM\ManyToOne(targetEntity="User")
-     * @ORM\JoinColumn(name="booker_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="booker_id", referencedColumnName="id", onDelete="SET NULL")
      */
     private $booker;
 
     /**
      * @ORM\ManyToOne(targetEntity="Beneficiary", inversedBy="reservedShifts")
-     * @ORM\JoinColumn(name="last_shifter_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="last_shifter_id", referencedColumnName="id", onDelete="SET NULL")
      */
     private $lastShifter;
 
@@ -128,7 +128,7 @@ class Shift
     public function __toString()
     {
         setlocale(LC_TIME, 'fr_FR.UTF8');
-        return strftime("%A %e %B de %R", $this->getStart()->getTimestamp()).' à '.strftime("%R", $this->getEnd()->getTimestamp()).' ['.$this->getShifter().']';
+        return strftime("%A %e %B de %R", $this->getStart()->getTimestamp()) . ' à ' . strftime("%R", $this->getEnd()->getTimestamp()) . ' [' . $this->getShifter() . ']';
     }
 
     /**
@@ -481,8 +481,9 @@ class Shift
         return $this->lastShifter;
     }
 
-    public function getTmpToken($key = ''){
-        return md5($this->getId().$this->getStart()->format('d/m/Y').$this->getEnd()->format('d/m/Y').$key);
+    public function getTmpToken($key = '')
+    {
+        return md5($this->getId() . $this->getStart()->format('d/m/Y') . $this->getEnd()->format('d/m/Y') . $key);
     }
 
     /**
@@ -538,14 +539,16 @@ class Shift
     /**
      * @return bool
      */
-    public function isFixe(): ?bool {
+    public function isFixe(): ?bool
+    {
         return $this->fixe;
     }
 
     /**
      * @param bool $fixe
      */
-    public function setFixe(?bool $fixe): void {
+    public function setFixe(?bool $fixe): void
+    {
         $this->fixe = $fixe;
     }
 
