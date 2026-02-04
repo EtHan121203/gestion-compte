@@ -103,12 +103,16 @@
                     <td>{{ shiftFreeLog.fixe ? 'Oui' : 'Non' }}</td>
                 {% endif %}
                 <td>
-                    {% if shiftFreeLog.createdBy and shiftFreeLog.createdBy.beneficiary %}
-                        <a href="{{ path("member_show",{'member_number': shiftFreeLog.createdBy.beneficiary.membership.memberNumber}) }}">
-                            {{ shiftFreeLog.createdBy.beneficiary }}
-                        </a>
+                    {% if shiftFreeLog.createdBy is not null %}
+                        {% if shiftFreeLog.createdBy.beneficiary %}
+                            <a href="{{ path("member_show",{'member_number': shiftFreeLog.createdBy.beneficiary.membership.memberNumber}) }}">
+                                {{ shiftFreeLog.createdBy.beneficiary }}
+                            </a>
+                        {% else %}
+                            {{ shiftFreeLog.createdBy }}
+                        {% endif %}
                     {% else %}
-                        {{ shiftFreeLog.createdBy }}
+                        <em>Utilisateur supprimé</em>
                     {% endif %}
                 </td>
                 {% if is_granted("ROLE_ADMIN") %}
