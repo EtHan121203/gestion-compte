@@ -15,7 +15,7 @@ use Doctrine\Migrations\AbstractMigration;
  * 
  * FIXED: Check if foreign keys exist before dropping them
  */
-final class Version20260203_fix_time_log_cascade extends AbstractMigration
+final class Version20260203000000_fix_time_log_cascade extends AbstractMigration
 {
     public function getDescription(): string
     {
