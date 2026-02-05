@@ -1,77 +1,109 @@
 # Installation
 
-## Utilisation via docker-compose
+## Démarrage rapide avec Docker (recommandé)
 
 ### Prérequis
 
-* docker
-* docker-compose
+* [Docker](https://docs.docker.com/get-docker/)
+* [Docker Compose](https://docs.docker.com/compose/install/)
 
-#### Construire les conteneurs
+### Installation en 3 étapes
 
-```shell
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/elefan-grenoble/gestion-compte.git
+cd gestion-compte
+
+# 2. Construire les conteneurs
 docker compose build
-``` 
 
-#### Lancer l'instance
-
-Lancer le docker-compose pour deployer un conteneur de base de données (mariadb) et un conteneur symfony
-
-```shell
-docker compose up
+# 3. Lancer les conteneurs
+docker compose up -d
 ```
 
-Note: le premier lancement du docker-compose peut être long (~30s) du fait de plusieurs étapes : initialisation de la db, creation du fichier parameters.yml, ... La ligne `PHP 7.4.27 Development Server (http://0.0.0.0:8000) started` indique que le deploiement de l'espace membre est fonctionnel. La base de données est montée dans docker avec un volume, elle est donc persistente. Le fichier _parameters.yml_ doit être modifié suivant la configuration voulue.
+### Accès à l'application
 
-N'oubliez pas de définir la variable d'environnement `DEV_MODE_ENABLED` dans le container qui exécute le code de l'application.
+Ajouter `127.0.0.1 membres.yourcoop.local` au fichier `/etc/hosts` :
 
-### Avec nix
-
-Vous pouvez obtenir toutes les dépendances du projet en utilisant [Nix](https://nixos.org/download.html). Une fois installé lancez `nix develop --impure` et tous les outils nécessaires sont dans votre `PATH` à la bonne version, comme déclaré dans [flake.nix](../flake.nix).
-Cela peut se faire automatiquement quand vous `cd` dans le répertoire si vous avez installé [direnv](https://direnv.net/).
-
-Pour lancer l'instance mariadb de test utilisez `devenv up`.
-Pour lancer l'application, utilisez `php bin/console server:run '*:8000'`
-
-## Accès à l'application
-
-Ajouter `127.0.0.1 membres.yourcoop.local` au fichier _/etc/hosts_.
-
-Le site est en ligne à l'adresse [http://membres.yourcoop.local:8000](http://membres.yourcoop.local:8000).
-
-Pour créer l'utilisateur super admin, visiter :
-[http://membres.yourcoop.local:8000/user/install_admin](http://membres.yourcoop.local:8000/user/install_admin).
-
-Vous pouvez vous connecter avec l'utilisateur super admin :
-**admin** / **password**.
-
-## Ajout de données
-
-### Remplir la base de donnée avec des données fictives
-
-```shell
-docker compose exec php php bin/console doctrine:fixtures:load -n
+```bash
+echo "127.0.0.1 membres.yourcoop.local" | sudo tee -a /etc/hosts
 ```
 
-Le groupe de fixtures "period" omet les données de la table **shift**, utile pour tester la génération des shifts à partir des périodes.
+L'application est accessible sur :
 
-```shell
-docker compose exec php php bin/console doctrine:fixtures:load -n --group=period
+* **Application** : [http://membres.yourcoop.local:8000](http://membres.yourcoop.local:8000)
+* **phpMyAdmin** : [http://localhost:8081](http://localhost:8081)
+
+### Connexion
+
+Créer l'utilisateur super admin en visitant :
+[http://membres.yourcoop.local:8000/user/install_admin](http://membres.yourcoop.local:8000/user/install_admin)
+
+Ou se connecter avec les identifiants par défaut (si les fixtures ont été chargées) :
+
+* **Login** : `admin`
+* **Mot de passe** : `password`
+
+### Charger des données de test (optionnel)
+
+```bash
+# Charger toutes les fixtures
+docker compose exec php bin/console doctrine:fixtures:load -n
+
+# Ou charger uniquement les périodes (sans les shifts)
+docker compose exec php bin/console doctrine:fixtures:load -n --group=period
 ```
 
-### Importer un dump de la base de données
+### Commandes utiles
 
-```shell
-# supprimer la base de données existante et la recréer
+```bash
+# Voir les logs
+docker compose logs -f php
+
+# Arrêter les conteneurs
+docker compose down
+
+# Redémarrer les conteneurs
+docker compose restart
+
+# Accéder au conteneur PHP
+docker compose exec php bash
+
+# Vider le cache
+docker compose exec php bin/console cache:clear
+```
+
+### Importer un dump de base de données
+
+```bash
+# Supprimer la base existante et la recréer
 docker compose exec database mariadb -uroot -psecret -e 'DROP DATABASE IF EXISTS symfony; CREATE DATABASE IF NOT EXISTS symfony;'
 
-# importer le dump
-docker compose exec database mariadb -uroot -psecret symfony < espace_membres.sql
+# Importer le dump
+docker compose exec database mariadb -uroot -psecret symfony < votre_dump.sql
+
+# Ou via phpMyAdmin : http://localhost:8081
 ```
 
-Vous pouvez aussi le faire directement sur phpmyadmin : [http://localhost:8081](http://localhost:8081)
+---
 
-## Installation sur un serveur
+## Alternative : Utilisation avec Nix
+
+Vous pouvez obtenir toutes les dépendances du projet en utilisant [Nix](https://nixos.org/download.html). Une fois installé lancez `nix develop --impure` et tous les outils nécessaires sont dans votre `PATH` à la bonne version, comme déclaré dans [flake.nix](../flake.nix).
+
+Cela peut se faire automatiquement quand vous `cd` dans le répertoire si vous avez installé [direnv](https://direnv.net/).
+
+```bash
+# Lancer l'instance mariadb de test
+devenv up
+
+# Lancer l'application
+php bin/console server:run '*:8000'
+```
+
+---
+
+## Installation sur un serveur (production)
 
 ### Prérequis
 
@@ -86,14 +118,14 @@ Vous pouvez aussi le faire directement sur phpmyadmin : [http://localhost:8081](
 
 Clone code
 
-```shell
-git clone https://github.com/quot17/gestion-compte.git
+```bash
+git clone https://github.com/elefan-grenoble/gestion-compte.git
 cd gestion-compte
 ```
 
 Lancer la configuration
 
-```shell
+```bash
 composer install
 ```
 
@@ -142,7 +174,7 @@ Avec nginx, ligne necessaire pour avoir les images dynamiques de qr et barecode 
 
 ```
 location ~* ^/sw/(.*)/(qr|br)\.png$ {
-	rewrite ^/sw/(.*)/(qr|br)\.png$ /app.php/sw/$1/$2.png last;
+ rewrite ^/sw/(.*)/(qr|br)\.png$ /app.php/sw/$1/$2.png last;
 }
 ```
 
