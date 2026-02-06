@@ -152,7 +152,7 @@ class Membership
 
     public function getTmpToken($key = '')
     {
-        return md5($this->getId().$this->getMemberNumber().$key.date('d'));
+        return md5($this->getId() . $this->getMemberNumber() . $key . date('d'));
     }
 
     /**
@@ -262,8 +262,11 @@ class Membership
      */
     public function getBeneficiariesWithMainInFirstPosition()
     {
-        $beneficiaries[] = $this->getMainBeneficiary();
-        if ($this->getBeneficiaries()->count() > 1) {
+        $beneficiaries = [];
+        if ($this->getMainBeneficiary()) {
+            $beneficiaries[] = $this->getMainBeneficiary();
+        }
+        if ($this->getBeneficiaries()->count() >= 1) {
             foreach ($this->getBeneficiaries() as $beneficiary) {
                 if ($beneficiary !== $this->getMainBeneficiary()) {
                     $beneficiaries[] = $beneficiary;
@@ -285,7 +288,7 @@ class Membership
             if ($key > 0) {
                 $memberNumberWithBeneficiaryListString .= ' &';
             }
-            $memberNumberWithBeneficiaryListString .= ' '. $beneficiary->getDisplayName();
+            $memberNumberWithBeneficiaryListString .= ' ' . $beneficiary->getDisplayName();
         }
         return $memberNumberWithBeneficiaryListString;
     }
@@ -316,7 +319,7 @@ class Membership
      */
     public function getMainBeneficiary()
     {
-        if (!$this->mainBeneficiary){
+        if (!$this->mainBeneficiary) {
             if ($this->getBeneficiaries()->count())
                 $this->setMainBeneficiary($this->getBeneficiaries()->first());
         }
@@ -409,17 +412,17 @@ class Membership
     public function getCommissions()
     {
         $commissions = array();
-        foreach ($this->getBeneficiaries() as $beneficiary){
-            $commissions = array_merge($beneficiary->getCommissions()->toArray(),$commissions);
+        foreach ($this->getBeneficiaries() as $beneficiary) {
+            $commissions = array_merge($beneficiary->getCommissions()->toArray(), $commissions);
         }
         return new ArrayCollection($commissions);
     }
 
     public function getOwnedCommissions()
     {
-        return $this->getCommissions()->filter(function($commission) {
+        return $this->getCommissions()->filter(function ($commission) {
             $r = false;
-            foreach ($commission->getOwners() as $owner){
+            foreach ($commission->getOwners() as $owner) {
                 if ($this->getBeneficiaries()->contains($owner))
                     return true;
             }
@@ -680,8 +683,7 @@ class Membership
 
     public function getShiftTimeCount($before = null)
     {
-        $sum = function($carry, TimeLog $log)
-        {
+        $sum = function ($carry, TimeLog $log) {
             $carry += $log->getTime();
             return $carry;
         };
@@ -698,8 +700,7 @@ class Membership
 
     public function getSavingTimeCount($before = null)
     {
-        $sum = function($carry, TimeLog $log)
-        {
+        $sum = function ($carry, TimeLog $log) {
             $carry += $log->getTime();
             return $carry;
         };
@@ -744,7 +745,7 @@ class Membership
         if (!$date) {
             $date = new \DateTime('now');
         }
-        return $this->membershipShiftExemptions->filter(function($membershipShiftExemption) use ($date) {
+        return $this->membershipShiftExemptions->filter(function ($membershipShiftExemption) use ($date) {
             return $membershipShiftExemption->isCurrent($date);
         });
     }
@@ -760,9 +761,8 @@ class Membership
         if (!$date) {
             $date = new \DateTime('now');
         }
-        return $this->membershipShiftExemptions->exists(function($key, $membershipShiftExemption) use ($date) {
+        return $this->membershipShiftExemptions->exists(function ($key, $membershipShiftExemption) use ($date) {
             return $membershipShiftExemption->isCurrent($date);
         });
     }
-
 }
